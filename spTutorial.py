@@ -62,76 +62,82 @@ biases = {
 }
 
 # the input is the number of datas we work at one time
-def lstm(batch): 
+
+
+def lstm(batch):
     # w_in is [inputsize, rnnunit]
-    w_in=weights['in']
+    w_in = weights['in']
     # bn is constant node value is 0.1  shape is rnnunit, -1
-    b_in=biases['in']
+    b_in = biases['in']
     # reshape X as shap [-1 ,input_size] i.e. [-1, 1]
-    input=tf.reshape(X,[-1,input_size])
+    input = tf.reshape(X, [-1, input_size])
     # we see a formular a = wx +b
     # here we got  [-1 , inputsize] * [inputsize , rnnunit] = [-1 , runnunit] + bin (bin is rnnunit , -1) then we get what????!!
-    input_rnn=tf.matmul(input,w_in)+b_in
+    input_rnn = tf.matmul(input, w_in)+b_in
     # here we reshape it as -1, timestep rnnunit
-    input_rnn=tf.reshape(input_rnn,[-1,time_step,rnn_unit]) 
+    input_rnn = tf.reshape(input_rnn, [-1, time_step, rnn_unit])
     # create a basic lSTM cell
-    cell=tf.nn.rnn_cell.BasicLSTMCell(rnn_unit)
+    cell = tf.nn.rnn_cell.BasicLSTMCell(rnn_unit)
     # set lstm params  begin state
-    init_state=cell.zero_state(batch,dtype=tf.float32)
+    init_state = cell.zero_state(batch, dtype=tf.float32)
     # the first ret is outpus  the second is state
-    output_rnn,final_states=tf.nn.dynamic_rnn(cell, input_rnn,initial_state=init_state, dtype=tf.float32)  
+    output_rnn, final_states = tf.nn.dynamic_rnn(
+        cell, input_rnn, initial_state=init_state, dtype=tf.float32)
     # reshape it to  output  which shape is -1 rnn_unit
-    output=tf.reshape(output_rnn,[-1,rnn_unit]) 
-    w_out=weights['out']
-    b_out=biases['out']
-    # here we got  -1, rnn_unit  * rnn unit,1 +===   -1, 1   +   1, -1 again ???  
-    pred=tf.matmul(output,w_out)+b_out
-    return pred,final_states
+    output = tf.reshape(output_rnn, [-1, rnn_unit])
+    w_out = weights['out']
+    b_out = biases['out']
+    # here we got  -1, rnn_unit  * rnn unit,1 +===   -1, 1   +   1, -1 again ???
+    pred = tf.matmul(output, w_out)+b_out
+    return pred, final_states
 
 
 def train_lstm():
     global batch_size
-    pred,_=rnn(batch_size)
-    # reduce 
-    loss=tf.reduce_mean(tf.square(tf.reshape(pred,[-1])-tf.reshape(Y, [-1])))
-    train_op=tf.train.AdamOptimizer(lr).minimize(loss)
-    saver=tf.train.Saver(tf.global_variables())
+    pred, _ = lstm(batch_size)
+    # reduce
+    loss = tf.reduce_mean(
+        tf.square(tf.reshape(pred, [-1])-tf.reshape(Y, [-1])))
+    # use adam optimizer
+    train_op = tf.train.AdamOptimizer(lr).minimize(loss)
+    saver = tf.train.Saver(tf.global_variables())
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        #重复训练10000次
+        # do it 10k time
         for i in range(10000):
-            step=0
-            start=0
-            end=start+batch_size
-            while(end<len(train_x)):
-                _,loss_=sess.run([train_op,loss],feed_dict={X:train_x[start:end],Y:train_y[start:end]})
-                start+=batch_size
-                end=start+batch_size
-                #每10步保存一次参数
-                if step%10==0:
-                    print(i,step,loss_)
-                    print("保存模型：",saver.save(sess,'stock.model'))
-                step+=1
+            step = 0
+            start = 0
+            # every 60 data apart
+            end = start+batch_size
+            while(end < len(train_x)):
+                _, loss_ = sess.run([train_op, loss], feed_dict={
+                                    X: train_x[start:end], Y: train_y[start:end]})
+                start += batch_size
+                end = start+batch_size
+                # save data very 10 step
+                if step % 10 == 0:
+                    print(i, step, loss_)
+                    print("save layer:", saver.save(sess, 'stock.model'))
+                step += 1
+train_lstm()
 
 
 def prediction():
-    pred,_=lstm(1)    #预测时只输入[1,time_step,input_size]的测试数据
-    saver=tf.train.Saver(tf.global_variables())
+    pred, _ = lstm(1)  # only[1,time_step,input_size]data inputed
+    saver = tf.train.Saver(tf.global_variables())
     with tf.Session() as sess:
-        #参数恢复
         module_file = tf.train.latest_checkpoint(base_path+'module2/')
-        saver.restore(sess, module_file) 
-        #取训练集最后一行为测试样本。shape=[1,time_step,input_size]
-        prev_seq=train_x[-1]
-        predict=[]
-        #得到之后100个预测结果
+        saver.restore(sess, module_file)
+        prev_seq = train_x[-1]
+        predict = []
         for i in range(100):
-            next_seq=sess.run(pred,feed_dict={X:[prev_seq]})
+            next_seq = sess.run(pred, feed_dict={X: [prev_seq]})
             predict.append(next_seq[-1])
-            #每次得到最后一个时间步的预测结果，与之前的数据加在一起，形成新的测试样本
-            prev_seq=np.vstack((prev_seq[1:],next_seq[-1]))
-        #以折线图表示结果
+            prev_seq = np.vstack((prev_seq[1:], next_seq[-1]))
         plt.figure()
         plt.plot(list(range(len(normalize_data))), normalize_data, color='b')
-        plt.plot(list(range(len(normalize_data), len(normalize_data) + len(predict))), predict, color='r')
+        plt.plot(list(range(len(normalize_data), len(
+            normalize_data) + len(predict))), predict, color='r')
         plt.show()
+
+prediction()
