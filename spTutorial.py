@@ -17,9 +17,6 @@ f = open('dahua.csv')
 df = pd.read_csv(f)
 data = np.array(df['high'])
 data = data[::-1]
-plt.figure()
-plt.plot(data)
-plt.show()
 normalize_data = (data-np.mean(data))/np.std(data)
 print(normalize_data)
 normalize_data = normalize_data[:, np.newaxis]
@@ -81,8 +78,8 @@ def lstm(batch):
     # set lstm params  begin state
     init_state = cell.zero_state(batch, dtype=tf.float32)
     # the first ret is outpus  the second is state
-    output_rnn, final_states = tf.nn.dynamic_rnn(
-        cell, input_rnn, initial_state=init_state, dtype=tf.float32)
+     tf.reset_default_graph()
+    output_rnn, final_states = tf.nn.dynamic_rnn(cell, input_rnn, initial_state=init_state, dtype=tf.float32)
     # reshape it to  output  which shape is -1 rnn_unit
     output = tf.reshape(output_rnn, [-1, rnn_unit])
     w_out = weights['out']
@@ -119,6 +116,8 @@ def train_lstm():
                     print(i, step, loss_)
                     print("save layer:", saver.save(sess, 'stock.model'))
                 step += 1
+
+
 train_lstm()
 
 
@@ -139,5 +138,6 @@ def prediction():
         plt.plot(list(range(len(normalize_data), len(
             normalize_data) + len(predict))), predict, color='r')
         plt.show()
+
 
 prediction()
