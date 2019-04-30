@@ -74,15 +74,42 @@ def invert_scale(scaler, X, value):
 def fit_lstm(train, batch_size, nb_epoch, neurons):
     X, y = train[:, 0:-1], train[:, -1]
     X = X.reshape(X.shape[0], 1, X.shape[1])
+    # add sequentail maodle
     model = Sequential()
+
+    # first layer is lstm
     model.add(LSTM(neurons, batch_input_shape=(
         batch_size, X.shape[1], X.shape[2]), stateful=True))
+
+    # then is dense layer
     model.add(Dense(1))
+
+    # here is learinng start trigger, the third param is metrics  == accuracy on default
+    # comile suppors mse by default just us mse
     model.compile(loss='mean_squared_error', optimizer='adam')
     for i in range(nb_epoch):
+        # then for each part of datas use fit to learn
+        # here epochs is time circle
+        # batch_size is data sie in each iterate
+        # validation_data to show diff and loss
+        # we can use this to fit :
+        # data = np.random.random((1000, 32))
+        # labels = np.random.random((1000, 10))
+        # val_data = np.random.random((100, 32))
+        # val_labels = np.random.random((100, 10))
+        # model.fit(data, labels, epochs=10, batch_size=32,
+        #          validation_data=(val_data, val_labels))
         model.fit(X, y, epochs=1, batch_size=batch_size, shuffle=False)
         model.reset_states()
     return model
+# accuturaly we can use  tf.keras.Model .evaluate and  tf.keras.model.predict to evalutae model and preidct datas
+# for example:
+#data = np.random.random((1000, 32))
+#labels = np.random.random((1000, 10))
+#model.evaluate(data, labels, batch_size=32)
+#model.evaluate(dataset, steps=30)
+#result = model.predict(data, batch_size=32)
+#print(result.shape)
 
 # make a one-step forecast
 
@@ -91,7 +118,11 @@ def forecast_lstm(model, batch_size, X):
     X = X.reshape(1, 1, len(X))
     yhat = model.predict(X, batch_size=batch_size)
     return yhat[0, 0]
-
+## multi input test 
+from keras.layers import Input, Embedding, LSTM, Dense
+from keras.models import Model
+main_in = 
+## multi input test end
 
 series = read_csv('dahua.csv', header=0, parse_dates=[
                   0], index_col=0, date_parser=parser)
