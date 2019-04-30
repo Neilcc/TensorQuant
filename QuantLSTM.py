@@ -118,10 +118,15 @@ def forecast_lstm(model, batch_size, X):
     X = X.reshape(1, 1, len(X))
     yhat = model.predict(X, batch_size=batch_size)
     return yhat[0, 0]
-## multi input test 
+## multi input test  todo  to validate
 from keras.layers import Input, Embedding, LSTM, Dense
 from keras.models import Model
-main_in = 
+main_in = Input(shape = (100,), dtype = 'float32', name = 'price' )
+sum_bus = Embedding(output_dim = 512, input_dim = 10000, input_length = 100)(main_in)
+lstm_out = LSTM(32)(sum_bus)
+auxiliary_output = Dense(1, activation='sigmoid', name='aux_output')(lstm_out)
+auxiliary_input = Input(shape=(5,), name='aux_input')
+x = keras.layers.concatenate([lstm_out, auxiliary_input])
 ## multi input test end
 
 series = read_csv('dahua.csv', header=0, parse_dates=[
