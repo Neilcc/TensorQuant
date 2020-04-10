@@ -29,8 +29,8 @@ input_size = 1      # input shape
 output_size = 1     # output shape
 lr = 0.0006         # learning rate
 train_x, train_y = [], []   # set
-print train_x
-print train_y
+print(train_x)
+print(train_y)
 for i in range(len(normalize_data)-time_step-1):
     x = normalize_data[i:i+time_step]
     y = normalize_data[i+1:i+time_step+1]
@@ -39,9 +39,9 @@ for i in range(len(normalize_data)-time_step-1):
 
 # in above we take y [i]as  x[i +1] because we want to predict the price at next day by the price one day before
 
-print train_x
-print ' this is y \n'
-print train_y
+print(train_x)
+print(' this is y \n')
+print(train_y)
 
 # a node as input second is shape
 X = tf.placeholder(tf.float32, [None, time_step, input_size])
