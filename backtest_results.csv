@@ -1,5 +1,4 @@
 date,prediction,actual,correct
-2024-01-02,Bullish (Mocked: No API Key Provided),Bullish,True
-2024-01-03,Bullish (Mocked: No API Key Provided),Bearish,False
-2024-01-04,Bullish (Mocked: No API Key Provided),Bullish,True
-2024-01-05,Bullish (Mocked: No API Key Provided),Bullish,True
+2024-01-03,Bullish (Mocked: No API Key Provided),Bullish,True
+2024-01-04,Bullish (Mocked: No API Key Provided),Bearish,False
+2024-01-05,Bullish (Mocked: No API Key Provided),Bearish,False
